@@ -10,8 +10,14 @@ contract('Voting', accounts => {
   const voter3 = accounts[3];
   const voter4 = accounts[4];
   const voter5 = accounts[5];
+  const notAVoter = accounts[6];
+  const voters = [owner, voter1, voter2, voter3, voter4, voter5];
   let instance;
-
+  const addAllVoters = async () => {
+    await Promise.all(voters.map(voter => {
+      instance.addVoter(voter, { from: owner })
+    }))
+  }
 
   context('fonctions addVoter() & getVoter()', () => {
     before(async () => {
@@ -48,6 +54,7 @@ contract('Voting', accounts => {
     it("doit émettre l'event WorkflowStatusChange et modifier le WorkflowStatus à ProposalsRegistrationStarted", async () => {
       instance = await Voting.new({ from: owner });
       const previousStatusId = await instance.workflowStatus();
+      .
       const emitEvent = await instance.startProposalsRegistering();
       const newStatusId = await instance.workflowStatus();
       await expectEvent(emitEvent, 'WorkflowStatusChange', { previousStatus: previousStatusId.words[0] + "", newStatus: newStatusId.words[0] + "" });
@@ -58,15 +65,12 @@ contract('Voting', accounts => {
   context('fonctions addProposal() & getOneProposal()', () => {
     before(async () => {
       instance = await Voting.new({ from: owner });
-      await instance.addVoter(owner, { from: owner });
-      await instance.addVoter(voter1, { from: owner });
-      await instance.addVoter(voter2, { from: owner });
-      await instance.addVoter(voter3, { from: owner });
+      addAllVoters();
       await instance.startProposalsRegistering();
     });
 
     it('doit être un voter enregistré', async () => {
-      await expectRevert(instance.addProposal("blabla", { from: voter5 }), "You're not a voter");
+      await expectRevert(instance.addProposal("blabla", { from: notAVoter }), "You're not a voter");
     });
 
     it('la proposition doit être non vide', async () => {
@@ -94,12 +98,7 @@ contract('Voting', accounts => {
 
     before(async () => {
       instance = await Voting.new({ from: owner });
-      await instance.addVoter(owner, { from: owner });
-      await instance.addVoter(voter1, { from: owner });
-      await instance.addVoter(voter2, { from: owner });
-      await instance.addVoter(voter3, { from: owner });
-      await instance.addVoter(voter4, { from: owner });
-      await instance.addVoter(voter5, { from: owner });
+      addAllVoters();
       await instance.startProposalsRegistering();
       await instance.addProposal("Rond point", { from: voter1 });
       await instance.addProposal("Panneau Stop", { from: voter2 });
@@ -144,12 +143,7 @@ contract('Voting', accounts => {
 
     before(async () => {
       instance = await Voting.new({ from: owner });
-      await instance.addVoter(owner, { from: owner });
-      await instance.addVoter(voter1, { from: owner });
-      await instance.addVoter(voter2, { from: owner });
-      await instance.addVoter(voter3, { from: owner });
-      await instance.addVoter(voter4, { from: owner });
-      await instance.addVoter(voter5, { from: owner });
+      addAllVoters();
       await instance.startProposalsRegistering();
       await instance.addProposal("Rond point", { from: voter1 });
       await instance.addProposal("Panneau Stop", { from: voter3 });
